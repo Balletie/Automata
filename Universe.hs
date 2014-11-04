@@ -2,7 +2,7 @@ module Universe where
 
 import Control.Comonad
 
-class Universe u where
+class (Comonad u) => Universe u where
   left :: u a -> u a
   right :: u a -> u a
   u_read :: u a -> a
@@ -29,7 +29,11 @@ instance Comonad ListZipper where
   duplicate a = LZ (tail $ iterate left a) a (tail $ iterate right a)
   extract = u_read
 
---data Loop a = L [a] a
+data Loop a = L [a] a
+
+instance Universe Loop where
+instance Functor Loop where
+instance Comonad Loop where
 
 shift :: (Universe u) => Int -> u a -> u a
 shift i u = iterate (if i < 0 then left else right) u !! abs i
