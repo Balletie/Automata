@@ -1,6 +1,7 @@
 module Main where
 
 import Universe
+import Rules
 import Control.Comonad
 import Codec.Picture
 import System.Random
@@ -31,8 +32,13 @@ randomInitialConditions = do
 
 main :: IO()
 main = do
-  u <- defaultInitialConditions
+  putStr "Rule (Wolfram code): "
+  rule_str <- getLine
+
+  u <- randomInitialConditions
   --let u = LZ leftList middle rightList
-  let us = iterate (=>> rule_30) u
+
+  let rule = read rule_str :: Int
+  let us = iterate (=>> rule_N rule) u
   --putStr $ (toString 9 63) $ us
-  writePng "test.png" $ getImage 400 400 us
+  writePng "test.png" $ getImage 1000 1000 us
