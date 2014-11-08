@@ -4,16 +4,18 @@ import Universe
 import Control.Comonad
 import System.Random
 
+stdGenIO :: IO StdGen
+stdGenIO = do
+  seed <- randomIO
+  return (mkStdGen seed)
+
 main :: IO()
 main = do
-  seedleft <- randomIO
-  let genleft = mkStdGen seedleft
+  genleft <- stdGenIO
   leftList <- return (randoms genleft)
-
   middle <- randomIO :: IO Bool
-
-  seedright <- randomIO
-  let genright = mkStdGen seedright
+  genright <- stdGenIO
   rightList <- return (randoms genright)
+
   let u = LZ leftList middle rightList
   putStr $ (toString 100 63) $ iterate (=>> rule_90) u
