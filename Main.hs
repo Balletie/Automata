@@ -16,15 +16,23 @@ imageRenderer pixels i j = pixels !! j !! i
 getImage :: Universe u => Int -> Int -> [u Bool] -> Image Pixel8
 getImage width height u = generateImage (imageRenderer (toWord8 width height u)) width height
 
-main :: IO()
-main = do
+defaultInitialConditions :: IO (ListZipper Bool)
+defaultInitialConditions = do
+  return (LZ (repeat False) True (repeat False))
+
+randomInitialConditions :: IO (ListZipper Bool)
+randomInitialConditions = do
   genleft <- stdGenIO
   leftList <- return (randoms genleft)
   middle <- randomIO :: IO Bool
   genright <- stdGenIO
   rightList <- return (randoms genright)
+  return (LZ leftList middle rightList)
 
-  let u = LZ leftList middle rightList
-  let us = iterate (=>> rule_90) u
+main :: IO()
+main = do
+  u <- defaultInitialConditions
+  --let u = LZ leftList middle rightList
+  let us = iterate (=>> rule_30) u
   --putStr $ (toString 9 63) $ us
   writePng "test.png" $ getImage 400 400 us

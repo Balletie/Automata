@@ -1,5 +1,6 @@
 module Universe where
 
+import Rules
 import Control.Comonad
 import Data.Sequence (iterateN)
 import qualified Data.Foldable as Foldable (toList)
@@ -87,6 +88,18 @@ toWord8 = toView pixelRep
 (.**) :: (d -> e) -> (a -> b -> c -> d) -> a -> b -> c -> e
 (.**) = (.) . (.) . (.)
 
+rule_30 :: (Universe u) => u Bool -> Bool
+rule_30 = rule_N 30
+
 rule_90 :: (Universe u) => u Bool -> Bool
 rule_90 u = (u_read . left $ u) ⊕ (u_read . right $ u)
   where (⊕) = (/=)  -- XOR is the same as not equal
+
+rule_110 :: (Universe u) => u Bool -> Bool
+rule_110 = rule_N 110
+
+rule_184 :: (Universe u) => u Bool -> Bool
+rule_184 = rule_N 184
+
+rule_N :: (Universe u) => Int -> u Bool -> Bool
+rule_N n u = mux [u_read . left $ u, u_read u, u_read . right $ u] n
