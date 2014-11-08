@@ -1,6 +1,8 @@
 module Universe where
 
 import Control.Comonad
+import Data.Sequence (iterateN)
+import qualified Data.Foldable as Foldable (toList)
 
 class (Comonad u) => Universe u where
   left :: u a -> u a
@@ -29,13 +31,28 @@ instance Comonad ListZipper where
   duplicate a = LZ (tail $ iterate left a) a (tail $ iterate right a)
   extract = u_read
 
-{-
- -data Loop a = L [a] a
- -
- -instance Universe Loop where
- -instance Functor Loop where
- -instance Comonad Loop where
- -}
+data Loop a = L [a] a
+
+loopLength :: Loop a -> Int
+loopLength (L xs _) = succ $ length xs
+
+instance Universe Loop where
+  left (L xs y) = L (xs++[y]) $ head xs
+  right (L xs y) = L (y:xs) $ last xs
+
+  u_read (L _ x) = x
+
+  u_write x (L xs _) = L xs x
+
+  u_take i _        | i <= 0 = []
+  u_take i (L xs x)          = x : (take (pred i) xs) ++ (u_take ((pred i) - length xs) (L xs x))
+
+instance Functor Loop where
+  fmap f (L xs x) = L (map f xs) (f x)
+
+instance Comonad Loop where
+  duplicate u = L (Foldable.toList (iterateN (pred $ loopLength u) left u)) $ u
+  extract = u_read
 
 shift :: (Universe u) => Int -> u a -> u a
 shift i u = iterate (if i < 0 then left else right) u !! abs i
