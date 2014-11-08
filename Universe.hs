@@ -67,8 +67,9 @@ toView :: (Universe u) => (Bool -> a)
                        -> Int
                        -> [u Bool]
                        -> [[a]]
-toView f a b u = take b $ map (map f . toList (1-middle) middle) u
+toView f a b u = take b $ map (map f . toList (-middle-oddity) middle) u
   where middle = a `quot` 2
+        oddity = a `mod`  2
 
 toString :: (Universe u) => Int
                          -> Int
