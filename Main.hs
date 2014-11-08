@@ -2,10 +2,18 @@ module Main where
 
 import Universe
 import Control.Comonad
+import System.Random
 
 main :: IO()
-main =
-  let u = LZ (repeat False) True (repeat False)
-    in putStr $ unlines $ take 63 $
-       map (map (\x -> if x then '#' else '.') . toList (-72) 73) $
-       iterate (=>> rule_90) u
+main = do
+  seedleft <- randomIO
+  let genleft = mkStdGen seedleft
+  leftList <- return (randoms genleft)
+
+  middle <- randomIO :: IO Bool
+
+  seedright <- randomIO
+  let genright = mkStdGen seedright
+  rightList <- return (randoms genright)
+  let u = LZ leftList middle rightList
+  putStr $ (toString 100 63) $ iterate (=>> rule_90) u

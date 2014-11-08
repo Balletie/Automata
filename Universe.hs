@@ -29,17 +29,28 @@ instance Comonad ListZipper where
   duplicate a = LZ (tail $ iterate left a) a (tail $ iterate right a)
   extract = u_read
 
-data Loop a = L [a] a
-
-instance Universe Loop where
-instance Functor Loop where
-instance Comonad Loop where
+{-
+ -data Loop a = L [a] a
+ -
+ -instance Universe Loop where
+ -instance Functor Loop where
+ -instance Comonad Loop where
+ -}
 
 shift :: (Universe u) => Int -> u a -> u a
 shift i u = iterate (if i < 0 then left else right) u !! abs i
 
 toList :: (Universe u) => Int -> Int -> u a -> [a]
 toList i j = u_take (j-i) . shift i
+
+toString :: (Universe u) => Int
+                         -> Int
+                         -> [u Bool]
+                         -> String
+toString a b u = unlines $ take b $ map (map stringRep . toList (1-middle) middle) u
+  where middle = a `quot` 2
+        stringRep x = case x of True -> '@'
+                                False -> '.'
 
 rule_90 :: (Universe u) => u Bool -> Bool
 rule_90 u = (u_read . left $ u) ⊕ (u_read . right $ u)
