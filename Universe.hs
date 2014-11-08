@@ -3,6 +3,7 @@ module Universe where
 import Control.Comonad
 import Data.Sequence (iterateN)
 import qualified Data.Foldable as Foldable (toList)
+import Data.Word
 
 class (Comonad u) => Universe u where
   left :: u a -> u a
@@ -45,7 +46,8 @@ instance Universe Loop where
   u_write x (L xs _) = L xs x
 
   u_take i _        | i <= 0 = []
-  u_take i (L xs x)          = x : (take (pred i) xs) ++ (u_take ((pred i) - length xs) (L xs x))
+  u_take i (L xs x)          = x : (take j xs) ++ (u_take (j - length xs) (L xs x))
+    where j = pred i
 
 instance Functor Loop where
   fmap f (L xs x) = L (map f xs) (f x)
@@ -60,14 +62,29 @@ shift i u = iterate (if i < 0 then left else right) u !! abs i
 toList :: (Universe u) => Int -> Int -> u a -> [a]
 toList i j = u_take (j-i) . shift i
 
+toView :: (Universe u) => (Bool -> a)
+                       -> Int
+                       -> Int
+                       -> [u Bool]
+                       -> [[a]]
+toView f a b u = take b $ map (map f . toList (1-middle) middle) u
+  where middle = a `quot` 2
+
 toString :: (Universe u) => Int
                          -> Int
                          -> [u Bool]
                          -> String
-toString a b u = unlines $ take b $ map (map stringRep . toList (1-middle) middle) u
-  where middle = a `quot` 2
-        stringRep x = case x of True -> '@'
+toString = unlines .** toView stringRep
+  where stringRep x = case x of True -> '@'
                                 False -> '.'
+
+toWord8 :: Universe u => Int -> Int -> [u Bool] -> [[Word8]]
+toWord8 = toView pixelRep
+  where pixelRep x = case x of True -> minBound :: Word8
+                               False -> maxBound :: Word8
+
+(.**) :: (d -> e) -> (a -> b -> c -> d) -> a -> b -> c -> e
+(.**) = (.) . (.) . (.)
 
 rule_90 :: (Universe u) => u Bool -> Bool
 rule_90 u = (u_read . left $ u) ⊕ (u_read . right $ u)
