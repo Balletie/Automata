@@ -48,9 +48,11 @@ instance Universe Loop where
 
   u_write x (L xs _) = L xs x
 
-  u_take i _        | i <= 0 = []
-  u_take i (L xs x)          = x : (take j xs) ++ (u_take (j - length xs) (L xs x))
-    where j = pred i
+  u_take i (L xs x)
+    | i <= 0    = []
+    | otherwise = x : (take j xs) ++ (u_take (j - length xs) u)
+    where j  = pred i
+          u  = (L xs x)
 
 instance Functor Loop where
   fmap f (L xs x) = L (map f xs) (f x)
@@ -76,7 +78,7 @@ toView :: (Universe u) => (Bool -> a) -- ^ The conversion function
                        -> Int         -- ^ The height of the view
                        -> [u Bool]    -- ^ The Universes to be converted
                        -> [[a]]       -- ^ The representation
-toView f a b u = take b $ map (map f . toList (-middle-oddity) middle) u
+toView f a b u = take b $ map (map f . toList (-middle) (middle+oddity)) u
   where middle = a `quot` 2
         oddity = a `mod`  2
 

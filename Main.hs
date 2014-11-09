@@ -37,15 +37,13 @@ randomListConditions = do
 
 defaultLoopConditions :: IO (Loop Bool)
 defaultLoopConditions = do
-  return (L (replicate 100 False) True)
+  return (L (replicate 95 False) True)
 
 randomLoopConditions :: IO (Loop Bool)
 randomLoopConditions = do
   genleft <- stdGenIO
-  leftList <- return (take 100 $ randoms genleft)
+  leftList <- return (take 95 $ randoms genleft)
   middle <- randomIO :: IO Bool
-  {-genright <- stdGenIO
-  rightList <- return (randoms genright)-}
   return (L leftList middle)
 
 stdGenIO :: IO StdGen
@@ -64,5 +62,5 @@ main = do
   rule <- getRule
   u <- getInitialConditions
   let us = iterate (=>> rule_N rule) u
-  --putStr $ (toString 30 10) $ us
+  --putStr $ (toString 33 10) $ us
   writePng "test.png" $ getImage 400 800 us
