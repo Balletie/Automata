@@ -57,7 +57,7 @@ instance Functor Loop where
   fmap f (L xs x) = L (map f xs) (f x)
 
 instance Comonad Loop where
-  duplicate u = L (Foldable.toList (iterateN (pred $ loopLength u) left u)) $ u
+  duplicate u = L (tail $ Foldable.toList (iterateN (loopLength u) left u)) $ u
   extract = u_read
 
 -- |Shift a Universe "|n|" times to the left or the right, depending on the sign
