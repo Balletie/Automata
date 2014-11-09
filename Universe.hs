@@ -16,10 +16,10 @@ data ListZipper a = LZ [a] a [a]
 
 instance Universe ListZipper where
   left (LZ (x:xs) y ys) = LZ xs x (y:ys)
-  left _ = error "Empty universe"
+  left _                = error "Empty universe"
 
   right (LZ xs x (y:ys)) = LZ (x:xs) y ys
-  right _ = error "Empty universe"
+  right _                = error "Empty universe"
 
   u_read (LZ _ x _) = x
   u_write x (LZ xs _ ys) = LZ xs x ys
@@ -33,13 +33,17 @@ instance Comonad ListZipper where
   extract = u_read
 
 data Loop a = L [a] a
+  deriving Show
 
 loopLength :: Loop a -> Int
 loopLength (L xs _) = succ $ length xs
 
 instance Universe Loop where
-  left (L xs y) = L (xs++[y]) $ head xs
-  right (L xs y) = L (y:xs) $ last xs
+  left (L (x:xs) y)  = L (xs++[y]) $ x
+  left _             = error "Empty universe"
+
+  right (L (_:xs) y) = L (y:xs) $ last xs
+  right _            = error "Empty universe"
 
   u_read (L _ x) = x
 

@@ -14,7 +14,7 @@ getRule = do
   rule_str <- getLine
   return (read rule_str :: Int)
 
-getInitialConditions :: IO (ListZipper Bool)
+getInitialConditions :: IO (Loop Bool)
 getInitialConditions = do
   putStr "Random initial conditions (y/n): "
   hFlush stdout
@@ -22,18 +22,18 @@ getInitialConditions = do
   case random_init of "y" -> randomInitialConditions
                       _   -> defaultInitialConditions
 
-defaultInitialConditions :: IO (ListZipper Bool)
+defaultInitialConditions :: IO (Loop Bool)
 defaultInitialConditions = do
-  return (LZ (repeat False) True (repeat False))
+  return (L (replicate 100 False) True)
 
-randomInitialConditions :: IO (ListZipper Bool)
+randomInitialConditions :: IO (Loop Bool)
 randomInitialConditions = do
   genleft <- stdGenIO
-  leftList <- return (randoms genleft)
+  leftList <- return (take 100 $ randoms genleft)
   middle <- randomIO :: IO Bool
-  genright <- stdGenIO
-  rightList <- return (randoms genright)
-  return (LZ leftList middle rightList)
+  {-genright <- stdGenIO
+  rightList <- return (randoms genright)-}
+  return (L leftList middle)
 
 stdGenIO :: IO StdGen
 stdGenIO = do
@@ -50,7 +50,6 @@ main :: IO()
 main = do
   rule <- getRule
   u <- getInitialConditions
-  --let u = LZ leftList middle rightList
   let us = iterate (=>> rule_N rule) u
-  --putStr $ (toString 9 63) $ us
-  writePng "test.png" $ getImage 400 400 us
+  --putStr $ (toString 30 10) $ us
+  writePng "test.png" $ getImage 400 800 us
