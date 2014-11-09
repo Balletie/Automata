@@ -19,15 +19,28 @@ getInitialConditions = do
   putStr "Random initial conditions (y/n): "
   hFlush stdout
   random_init <- getLine
-  case random_init of "y" -> randomInitialConditions
-                      _   -> defaultInitialConditions
+  case random_init of "y" -> randomLoopConditions
+                      _   -> defaultLoopConditions
 
-defaultInitialConditions :: IO (Loop Bool)
-defaultInitialConditions = do
+defaultListConditions :: IO (ListZipper Bool)
+defaultListConditions = do
+  return (LZ (repeat False) True (repeat False))
+
+randomListConditions :: IO (ListZipper Bool)
+randomListConditions = do
+  genleft <- stdGenIO
+  leftList <- return (randoms genleft)
+  middle <- randomIO :: IO Bool
+  genright <- stdGenIO
+  rightList <- return (randoms genright)
+  return (LZ leftList middle rightList)
+
+defaultLoopConditions :: IO (Loop Bool)
+defaultLoopConditions = do
   return (L (replicate 100 False) True)
 
-randomInitialConditions :: IO (Loop Bool)
-randomInitialConditions = do
+randomLoopConditions :: IO (Loop Bool)
+randomLoopConditions = do
   genleft <- stdGenIO
   leftList <- return (take 100 $ randoms genleft)
   middle <- randomIO :: IO Bool

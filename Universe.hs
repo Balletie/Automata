@@ -13,6 +13,7 @@ class (Comonad u) => Universe u where
   u_take :: Int -> u a -> [a]
 
 data ListZipper a = LZ [a] a [a]
+  deriving Show
 
 instance Universe ListZipper where
   left (LZ (x:xs) y ys) = LZ xs x (y:ys)
@@ -39,11 +40,9 @@ loopLength :: Loop a -> Int
 loopLength (L xs _) = succ $ length xs
 
 instance Universe Loop where
-  left (L (x:xs) y)  = L (xs++[y]) $ x
-  left _             = error "Empty universe"
+  right (L xs y) = L (tail xs ++ [y]) $ head xs
 
-  right (L (_:xs) y) = L (y:xs) $ last xs
-  right _            = error "Empty universe"
+  left (L xs y) = L (y : init xs) $ last xs
 
   u_read (L _ x) = x
 
@@ -57,7 +56,7 @@ instance Functor Loop where
   fmap f (L xs x) = L (map f xs) (f x)
 
 instance Comonad Loop where
-  duplicate u = L (tail $ Foldable.toList (iterateN (loopLength u) left u)) $ u
+  duplicate u = L (tail $ Foldable.toList (iterateN (loopLength u) right u)) $ u
   extract = u_read
 
 -- |Shift a Universe "|n|" times to the left or the right, depending on the sign
