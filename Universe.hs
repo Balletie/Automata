@@ -56,33 +56,44 @@ instance Comonad Loop where
   duplicate u = L (Foldable.toList (iterateN (pred $ loopLength u) left u)) $ u
   extract = u_read
 
+-- |Shift a Universe "|n|" times to the left or the right, depending on the sign
+-- of "n".
 shift :: (Universe u) => Int -> u a -> u a
 shift i u = iterate (if i < 0 then left else right) u !! abs i
 
+-- |Return a part of the Universe as a List, using the given bounds.
+-- From Dan Piponi's blog post.
 toList :: (Universe u) => Int -> Int -> u a -> [a]
 toList i j = u_take (j-i) . shift i
 
-toView :: (Universe u) => (Bool -> a)
-                       -> Int
-                       -> Int
-                       -> [u Bool]
-                       -> [[a]]
+-- |Convert each Bool in the Universe to a representation,
+-- using the given conversion function. Inspired by Dan Piponi's blog post
+toView :: (Universe u) => (Bool -> a) -- ^ The conversion function
+                       -> Int         -- ^ The width of the view
+                       -> Int         -- ^ The height of the view
+                       -> [u Bool]    -- ^ The Universes to be converted
+                       -> [[a]]       -- ^ The representation
 toView f a b u = take b $ map (map f . toList (-middle-oddity) middle) u
   where middle = a `quot` 2
         oddity = a `mod`  2
 
-toString :: (Universe u) => Int
-                         -> Int
-                         -> [u Bool]
-                         -> String
+-- |Convert the given Universes to a String, which can be
+-- displayed in a terminal window
+toString :: (Universe u) => Int       -- ^ The width of each line
+                         -> Int       -- ^ The number of lines (the height)
+                         -> [u Bool]  -- ^ The Universes
+                         -> String    -- ^ The resulting String
 toString = unlines .** toView stringRep
   where stringRep x = case x of True -> '@'
                                 False -> '.'
 
+-- |Convert the Universes to a grid of pixel values (Word8), for writing to
+-- an image file, or displaying it in a window.
 toWord8 :: Universe u => Int -> Int -> [u Bool] -> [[Word8]]
 toWord8 = toView pixelRep
   where pixelRep x = case x of True -> minBound :: Word8
                                False -> maxBound :: Word8
 
+-- |Utility function used by toString
 (.**) :: (d -> e) -> (a -> b -> c -> d) -> a -> b -> c -> e
 (.**) = (.) . (.) . (.)

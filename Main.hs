@@ -7,17 +7,6 @@ import Codec.Picture
 import System.Random
 import System.IO
 
-stdGenIO :: IO StdGen
-stdGenIO = do
-  seed <- randomIO
-  return (mkStdGen seed)
-
-imageRenderer :: [[Pixel8]] -> Int -> Int -> Pixel8
-imageRenderer pixels i j = pixels !! j !! i
-
-getImage :: Universe u => Int -> Int -> [u Bool] -> Image Pixel8
-getImage width height u = generateImage (imageRenderer (toWord8 width height u)) width height
-
 getRule :: IO Int
 getRule = do
   putStr "Rule (Wolfram code): "
@@ -45,6 +34,17 @@ randomInitialConditions = do
   genright <- stdGenIO
   rightList <- return (randoms genright)
   return (LZ leftList middle rightList)
+
+stdGenIO :: IO StdGen
+stdGenIO = do
+  seed <- randomIO
+  return (mkStdGen seed)
+
+getImage :: Universe u => Int -> Int -> [u Bool] -> Image Pixel8
+getImage width height u = generateImage (imageRenderer (toWord8 width height u)) width height
+
+imageRenderer :: [[Pixel8]] -> Int -> Int -> Pixel8
+imageRenderer pixels i j = pixels !! j !! i
 
 main :: IO()
 main = do
