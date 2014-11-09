@@ -5,6 +5,7 @@ import Rules
 import Control.Comonad
 import Codec.Picture
 import System.Random
+import System.IO
 
 stdGenIO :: IO StdGen
 stdGenIO = do
@@ -16,6 +17,21 @@ imageRenderer pixels i j = pixels !! j !! i
 
 getImage :: Universe u => Int -> Int -> [u Bool] -> Image Pixel8
 getImage width height u = generateImage (imageRenderer (toWord8 width height u)) width height
+
+getRule :: IO Int
+getRule = do
+  putStr "Rule (Wolfram code): "
+  hFlush stdout
+  rule_str <- getLine
+  return (read rule_str :: Int)
+
+getInitialConditions :: IO (ListZipper Bool)
+getInitialConditions = do
+  putStr "Random initial conditions (y/n): "
+  hFlush stdout
+  random_init <- getLine
+  case random_init of "y" -> randomInitialConditions
+                      _   -> defaultInitialConditions
 
 defaultInitialConditions :: IO (ListZipper Bool)
 defaultInitialConditions = do
@@ -32,13 +48,9 @@ randomInitialConditions = do
 
 main :: IO()
 main = do
-  putStr "Rule (Wolfram code): "
-  rule_str <- getLine
-
-  u <- randomInitialConditions
+  rule <- getRule
+  u <- getInitialConditions
   --let u = LZ leftList middle rightList
-
-  let rule = read rule_str :: Int
   let us = iterate (=>> rule_N rule) u
   --putStr $ (toString 9 63) $ us
-  writePng "test.png" $ getImage 1000 1000 us
+  writePng "test.png" $ getImage 400 400 us
