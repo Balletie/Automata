@@ -1,5 +1,6 @@
 module Main where
 
+import Data.Array.IArray
 import Universe
 import Rules
 import Control.Comonad
@@ -52,10 +53,12 @@ stdGenIO = do
   return (mkStdGen seed)
 
 getImage :: Universe u => Int -> Int -> [u Bool] -> Image Pixel8
-getImage width height u = generateImage (imageRenderer (toWord8 width height u)) width height
+getImage width height u = generateImage (imageRenderer arr) width height
+  where arr = listArray ((0,0),(height-1,width-1)) pixels
+        pixels = concat (toWord8 width height u)
 
-imageRenderer :: [[Pixel8]] -> Int -> Int -> Pixel8
-imageRenderer pixels i j = pixels !! j !! i
+imageRenderer :: Array (Int,Int) Pixel8 -> Int -> Int -> Pixel8
+imageRenderer pixels i j = pixels ! (j,i)
 
 main :: IO()
 main = do
