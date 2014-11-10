@@ -24,8 +24,7 @@ getInitialConditions = do
                       _   -> defaultLoopConditions
 
 defaultListConditions :: IO (ListZipper Bool)
-defaultListConditions = do
-  return (LZ (repeat False) True (repeat False))
+defaultListConditions = return (LZ (repeat False) True (repeat False))
 
 randomListConditions :: IO (ListZipper Bool)
 randomListConditions = do
@@ -37,8 +36,7 @@ randomListConditions = do
   return (LZ leftList middle rightList)
 
 defaultLoopConditions :: IO (Loop Bool)
-defaultLoopConditions = do
-  return (L (replicate 95 False) True)
+defaultLoopConditions = return (L (replicate 95 False) True)
 
 randomLoopConditions :: IO (Loop Bool)
 randomLoopConditions = do
@@ -48,9 +46,7 @@ randomLoopConditions = do
   return (L leftList middle)
 
 stdGenIO :: IO StdGen
-stdGenIO = do
-  seed <- randomIO
-  return (mkStdGen seed)
+stdGenIO = mkStdGen <$> randomIO
 
 getImage :: Universe u => Int -> Int -> [u Bool] -> Image Pixel8
 getImage width height u = generateImage (imageRenderer arr) width height
