@@ -48,11 +48,10 @@ instance Universe Loop where
 
   u_write x (L xs _) = L xs x
 
-  u_take i (L xs x)
+  u_take i u@(L xs x)
     | i <= 0    = []
     | otherwise = x : (take j xs) ++ (u_take (j - length xs) u)
     where j  = pred i
-          u  = (L xs x)
 
 instance Functor Loop where
   fmap f (L xs x) = L (map f xs) (f x)
