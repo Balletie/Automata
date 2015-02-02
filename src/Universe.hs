@@ -95,7 +95,7 @@ toString = unlines .** toView stringRep
 -- an image file, or displaying it in a window.
 toWord8 :: Universe u => Int -> Int -> [u Bool] -> [[Word8]]
 toWord8 = toView pixelRep
-  where pixelRep x = case x of True -> minBound :: Word8
+  where pixelRep x = case x of True  -> minBound :: Word8
                                False -> maxBound :: Word8
 
 -- |Utility function used by toString

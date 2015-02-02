@@ -7,6 +7,8 @@ import Control.Comonad
 import Codec.Picture
 import System.Random
 import System.IO
+import Graphics.Gloss
+import Graphics.Gloss.Juicy
 
 getRule :: IO Int
 getRule = do
@@ -15,13 +17,13 @@ getRule = do
   rule_str <- getLine
   return (read rule_str :: Int)
 
-getInitialConditions :: IO (Loop Bool)
+getInitialConditions :: IO (ListZipper Bool)
 getInitialConditions = do
   putStr "Random initial conditions (y/n): "
   hFlush stdout
   random_init <- getLine
-  case random_init of "y" -> randomLoopConditions
-                      _   -> defaultLoopConditions
+  case random_init of "y" -> randomListConditions
+                      _   -> defaultListConditions
 
 defaultListConditions :: IO (ListZipper Bool)
 defaultListConditions = return (LZ (repeat False) True (repeat False))
@@ -61,5 +63,10 @@ main = do
   rule <- getRule
   u <- getInitialConditions
   let us = iterate (=>> rule_N rule) u
+      width = 400
+      height = 800
+      image = getImage width height us
+      disp  = (InWindow ("Rule " ++ (show rule)) (width, height) (5, 5))
+  display disp white (fromImageY8 image)
   --putStr $ (toString 33 10) $ us
-  writePng "test.png" $ getImage 400 800 us
+  --writePng "test.png" image
