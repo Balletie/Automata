@@ -1,11 +1,15 @@
 module Universe where
 
+import Util
+import System.Random
 import Control.Comonad
 import Data.Sequence (iterateN)
 import qualified Data.Foldable as Foldable (toList)
 import Data.Word
 
 class (Comonad u) => Universe u where
+  random_universe :: IO (u Bool)
+  default_universe :: u Bool
   left :: u a -> u a
   right :: u a -> u a
   u_read :: u a -> a
@@ -16,6 +20,16 @@ data ListZipper a = LZ [a] a [a]
   deriving Show
 
 instance Universe ListZipper where
+  random_universe = do
+    genleft <- stdGenIO
+    leftList <- return (randoms genleft)
+    middle <- randomIO :: IO Bool
+    genright <- stdGenIO
+    rightList <- return (randoms genright)
+    return (LZ leftList middle rightList)
+
+  default_universe = LZ (repeat False) True (repeat False)
+
   left (LZ (x:xs) y ys) = LZ xs x (y:ys)
   left _                = error "Empty universe"
 
@@ -40,6 +54,14 @@ loopLength :: Loop a -> Int
 loopLength (L xs _) = succ $ length xs
 
 instance Universe Loop where
+  random_universe = do
+    genleft <- stdGenIO
+    leftList <- return (take 95 $ randoms genleft)
+    middle <- randomIO :: IO Bool
+    return (L leftList middle)
+
+  default_universe = L (replicate 95 False) True
+
   right (L xs y) = L (tail xs ++ [y]) $ head xs
 
   left (L xs y) = L (y : init xs) $ last xs
@@ -97,7 +119,3 @@ toWord8 :: Universe u => Int -> Int -> [u Bool] -> [[Word8]]
 toWord8 = toView pixelRep
   where pixelRep x = case x of True  -> minBound :: Word8
                                False -> maxBound :: Word8
-
--- |Utility function used by toString
-(.**) :: (d -> e) -> (a -> b -> c -> d) -> a -> b -> c -> e
-(.**) = (.) . (.) . (.)

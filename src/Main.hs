@@ -5,10 +5,17 @@ import Universe
 import Rules
 import Control.Comonad
 import Codec.Picture
-import System.Random
 import System.IO
 import Graphics.Gloss
 import Graphics.Gloss.Juicy
+
+getType :: IO Bool
+getType = do
+  putStr "Loop (y/n): "
+  hFlush stdout
+  type_str <- getLine
+  return $ case type_str of "y" -> True
+                            _   -> False
 
 getRule :: IO Int
 getRule = do
@@ -17,38 +24,13 @@ getRule = do
   rule_str <- getLine
   return (read rule_str :: Int)
 
-getInitialConditions :: IO (ListZipper Bool)
+getInitialConditions :: Universe u => IO (u Bool)
 getInitialConditions = do
   putStr "Random initial conditions (y/n): "
   hFlush stdout
   random_init <- getLine
-  case random_init of "y" -> randomListConditions
-                      _   -> defaultListConditions
-
-defaultListConditions :: IO (ListZipper Bool)
-defaultListConditions = return (LZ (repeat False) True (repeat False))
-
-randomListConditions :: IO (ListZipper Bool)
-randomListConditions = do
-  genleft <- stdGenIO
-  leftList <- return (randoms genleft)
-  middle <- randomIO :: IO Bool
-  genright <- stdGenIO
-  rightList <- return (randoms genright)
-  return (LZ leftList middle rightList)
-
-defaultLoopConditions :: IO (Loop Bool)
-defaultLoopConditions = return (L (replicate 95 False) True)
-
-randomLoopConditions :: IO (Loop Bool)
-randomLoopConditions = do
-  genleft <- stdGenIO
-  leftList <- return (take 95 $ randoms genleft)
-  middle <- randomIO :: IO Bool
-  return (L leftList middle)
-
-stdGenIO :: IO StdGen
-stdGenIO = mkStdGen <$> randomIO
+  case random_init of "y" -> random_universe
+                      _   -> return (default_universe)
 
 getImage :: Universe u => Int -> Int -> [u Bool] -> Image Pixel8
 getImage width height u = generateImage (imageRenderer arr) width height
@@ -60,8 +42,12 @@ imageRenderer pixels i j = pixels ! (j,i)
 
 main :: IO()
 main = do
+  u_type <- getType
   rule <- getRule
-  u <- getInitialConditions
+  u <- if u_type then
+         getInitialConditions :: IO (Loop Bool)
+         else
+           getInitialConditions
   let us = iterate (=>> rule_N rule) u
       width = 400
       height = 800
