@@ -9,6 +9,7 @@ import System.Random
 import Control.Comonad
 import Codec.Picture
 import Graphics.Gloss
+import Graphics.Gloss.Data.ViewPort
 import Graphics.Gloss.Juicy
 
 getType :: IO Bool
@@ -30,6 +31,13 @@ getImage width height u = generateImage (imageRenderer arr) width height
 imageRenderer :: Array (Int,Int) Pixel8 -> Int -> Int -> Pixel8
 imageRenderer pixels i j = pixels ! (j,i)
 
+render :: Universe u => [u Bool] -> Int -> Int -> Picture
+render us width height = fromImageY8 image
+  where image = getImage width height us
+
+update :: ViewPort -> Float -> Int -> Int
+update _ _ = (+ 1)
+
 main :: IO()
 main = do
   loop_type <- getType
@@ -47,10 +55,10 @@ runUniverse rule u = do
   let us = iterate (=>> rule_N rule) u
       width = 400
       height = 800
-      image = getImage width height us
       disp  = (InWindow ("Rule " ++ (show rule)) (width, height) (5, 5))
 
-  display disp white (fromImageY8 image)
+  simulate disp white 100 1 (render us width) update
+  --display disp white (fromImageY8 image)
   --putStr $ (toString 33 10) $ us
   --writePng "test.png" image
 
